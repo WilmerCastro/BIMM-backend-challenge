@@ -27,9 +27,7 @@ const makesResponse = z.object({
       noResults,
       z
         .object({
-          AllVehicleMakes: z.array(
-            z.object({ Make_ID: id, Make_Name: name }),
-          ),
+          AllVehicleMakes: z.array(z.object({ Make_ID: id, Make_Name: name })),
         })
         .transform(({ AllVehicleMakes }) =>
           AllVehicleMakes.map((make) => ({
@@ -99,6 +97,6 @@ export const parseVehicleTypesXml = (
   makeId: number,
 ): VehicleType[] => {
   const source = `GetVehicleTypesForMakeId/${makeId}`;
-  return transform(vehicleTypesResponse, parseXml(xml, source), source)
-    .Response.Results;
+  return transform(vehicleTypesResponse, parseXml(xml, source), source).Response
+    .Results;
 };
