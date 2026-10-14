@@ -1,21 +1,31 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createRateLimiter } from '../../../../common/resilience/rate-limiter.js';
 import { withRetry } from '../../../../common/resilience/retry.js';
 import type { Env } from '../../../../config/env.js';
 import type {
   MakeSummary,
   VehicleType,
 } from '../../../vehicles/domain/make.js';
-import { NetworkError } from '../../domain/ingestion.errors.js';
+import {
+  NetworkError,
+  SourceBlockedError,
+} from '../../domain/ingestion.errors.js';
+import type { VehicleCatalogSource } from '../../domain/vehicle-catalog.source.js';
 import { parseMakesXml, parseVehicleTypesXml } from './nhtsa-xml.parser.js';
 
 const isRetryableStatus = (status: number) => status === 429 || status >= 500;
 
 @Injectable()
-export class NhtsaClient {
+export class NhtsaClient implements VehicleCatalogSource {
   private readonly logger = new Logger(NhtsaClient.name);
+  private readonly waitForTurn: () => Promise<void>;
 
-  constructor(private readonly config: ConfigService<Env, true>) {}
+  constructor(private readonly config: ConfigService<Env, true>) {
+    this.waitForTurn = createRateLimiter(
+      config.get('NHTSA_REQUESTS_PER_SECOND', { infer: true }),
+    );
+  }
 
   async getAllMakes(): Promise<MakeSummary[]> {
     const source = 'getallmakes';
@@ -45,6 +55,8 @@ export class NhtsaClient {
     const url = `${this.config.get('NHTSA_BASE_URL', { infer: true })}/${path}`;
     const timeoutMs = this.config.get('NHTSA_TIMEOUT_MS', { infer: true });
 
+    await this.waitForTurn();
+
     let response: Response;
     let body: string;
     try {
@@ -54,6 +66,13 @@ export class NhtsaClient {
       throw new NetworkError(`Request to ${source} failed`, true, {
         source,
         cause: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    if (response.status === 403) {
+      throw new SourceBlockedError(`${source} was blocked by NHTSA (403)`, {
+        source,
+        status: response.status,
       });
     }
 

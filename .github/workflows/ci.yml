@@ -19,6 +19,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test:cov
+      - run: pnpm test:integration
       - run: pnpm build
       - uses: actions/upload-artifact@v4
         with:

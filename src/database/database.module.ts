@@ -2,21 +2,14 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { Env } from '../config/env.js';
+import { databaseOptions } from './database.options.js';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService<Env, true>) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST', { infer: true }),
-        port: config.get('DB_PORT', { infer: true }),
-        username: config.get('DB_USER', { infer: true }),
-        password: config.get('DB_PASSWORD', { infer: true }),
-        database: config.get('DB_NAME', { infer: true }),
-        autoLoadEntities: true,
-        synchronize: false,
-      }),
+      useFactory: (config: ConfigService<Env, true>) =>
+        databaseOptions((key) => config.get(key, { infer: true })),
     }),
   ],
 })

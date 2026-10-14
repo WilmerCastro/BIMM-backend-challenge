@@ -1,0 +1,113 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+"""A make that could not be ingested."""
+type IngestionFailure {
+  makeId: Int!
+  makeName: String!
+
+  """Error type and message."""
+  reason: String!
+}
+
+"""One execution of the NHTSA ingestion pipeline."""
+type IngestionRun {
+  """Why the whole run failed, when it did."""
+  error: String
+
+  """Up to 100 makes that failed, for troubleshooting."""
+  failures: [IngestionFailure!]!
+  finishedAt: DateTime
+  id: Int!
+  makesFailed: Int!
+  makesSaved: Int!
+  makesTotal: Int!
+  startedAt: DateTime!
+  status: IngestionStatus!
+}
+
+"""Outcome of an ingestion run."""
+enum IngestionStatus {
+  """Every make was saved."""
+  COMPLETED
+
+  """Nothing could be saved."""
+  FAILED
+
+  """Some makes were saved and some failed."""
+  PARTIAL
+
+  """Still fetching and saving makes."""
+  RUNNING
+}
+
+"""A vehicle manufacturer from the NHTSA vPIC database."""
+type Make {
+  """NHTSA make id."""
+  makeId: Int!
+
+  """Make name as published by NHTSA."""
+  makeName: String!
+
+  """Vehicle types this make builds."""
+  vehicleTypes: [VehicleType!]!
+}
+
+"""A page of makes."""
+type MakeConnection {
+  nodes: [Make!]!
+  pageInfo: PageInfo!
+
+  """Makes matching the filters, across all pages."""
+  totalCount: Int!
+}
+
+"""Where a page of results ends."""
+type PageInfo {
+  """Pass as "after" to get the next page. Null when the page is empty."""
+  endCursor: String
+
+  """Whether more results follow this page."""
+  hasNextPage: Boolean!
+}
+
+type Query {
+  """The most recent ingestion run, or null before the first one."""
+  lastIngestion: IngestionRun
+
+  """One make, or null when the id is unknown."""
+  make(makeId: Int!): Make
+
+  """Makes ordered by name, paginated with cursors."""
+  makes(
+    """The endCursor of the previous page."""
+    after: String
+
+    """How many makes to return, from 1 to 100."""
+    first: Int! = 50
+
+    """Case-insensitive part of the make name."""
+    name: String
+
+    """Only makes that build this vehicle type."""
+    vehicleTypeId: Int
+  ): MakeConnection!
+
+  """Every vehicle type in the catalog."""
+  vehicleTypes: [VehicleType!]!
+}
+
+"""A kind of vehicle, as classified by NHTSA."""
+type VehicleType {
+  """NHTSA vehicle type id."""
+  typeId: Int!
+
+  """Vehicle type name, e.g. "Passenger Car"."""
+  typeName: String!
+}

@@ -11,12 +11,23 @@ describe('validateEnv', () => {
       DB_USER: 'postgres',
       DB_PASSWORD: 'secret',
       DB_NAME: 'vehicles',
+      DB_RUN_MIGRATIONS: true,
       NHTSA_BASE_URL: 'https://vpic.nhtsa.dot.gov/api/vehicles',
       NHTSA_TIMEOUT_MS: 10_000,
       NHTSA_MAX_RETRIES: 3,
       NHTSA_RETRY_BASE_DELAY_MS: 500,
       NHTSA_CONCURRENCY: 10,
+      NHTSA_REQUESTS_PER_SECOND: 5,
+      INGEST_ON_STARTUP: false,
+      INGEST_BATCH_SIZE: 500,
     });
+  });
+
+  it('reads boolean flags from strings', () => {
+    expect(
+      validateEnv({ DB_PASSWORD: 'secret', DB_RUN_MIGRATIONS: 'false' })
+        .DB_RUN_MIGRATIONS,
+    ).toBe(false);
   });
 
   it('drops a trailing slash from the NHTSA base URL', () => {
@@ -45,6 +56,9 @@ describe('validateEnv', () => {
     ['NHTSA_BASE_URL', 'not a url'],
     ['NHTSA_CONCURRENCY', '0'],
     ['NHTSA_CONCURRENCY', '500'],
+    ['INGEST_MAKES_LIMIT', '-5'],
+    ['NHTSA_REQUESTS_PER_SECOND', '0'],
+    ['INGEST_ON_STARTUP', 'maybe'],
   ])('rejects an invalid %s', (name, value) => {
     expect(() => validateEnv({ DB_PASSWORD: 'secret', [name]: value })).toThrow(
       new RegExp(name),

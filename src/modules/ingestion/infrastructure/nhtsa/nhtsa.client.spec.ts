@@ -5,7 +5,11 @@ import { resolve } from 'node:path';
 import { delay, http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { validateEnv } from '../../../../config/env.js';
-import { NetworkError, XmlParseError } from '../../domain/ingestion.errors.js';
+import {
+  NetworkError,
+  SourceBlockedError,
+  XmlParseError,
+} from '../../domain/ingestion.errors.js';
 import { NhtsaClient } from './nhtsa.client.js';
 
 const BASE_URL = 'https://nhtsa.test/api/vehicles';
@@ -23,6 +27,7 @@ const createClient = (overrides: Record<string, string> = {}) =>
         NHTSA_BASE_URL: BASE_URL,
         NHTSA_MAX_RETRIES: '2',
         NHTSA_RETRY_BASE_DELAY_MS: '1',
+        NHTSA_REQUESTS_PER_SECOND: '500',
         ...overrides,
       }),
     ),
@@ -115,6 +120,20 @@ describe('NhtsaClient', () => {
       retryable: false,
       details: { status: 400 },
     });
+    expect(requests()).toBe(1);
+  });
+
+  it('reports a 403 as blocked and does not retry it', async () => {
+    const requests = countRequests(TYPES_440_URL);
+    server.use(
+      http.get(TYPES_440_URL, () =>
+        HttpResponse.text('<H1>Access Denied</H1>', { status: 403 }),
+      ),
+    );
+
+    await expect(createClient().getVehicleTypes(440)).rejects.toBeInstanceOf(
+      SourceBlockedError,
+    );
     expect(requests()).toBe(1);
   });
 

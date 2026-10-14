@@ -18,6 +18,14 @@ export class NetworkError extends IngestionError {
   }
 }
 
+export class SourceBlockedError extends NetworkError {
+  constructor(message: string, details: Record<string, unknown> = {}) {
+    super(message, false, details);
+  }
+}
+
 export class XmlParseError extends IngestionError {}
 
 export class TransformationError extends IngestionError {}
+
+export class PersistenceError extends IngestionError {}

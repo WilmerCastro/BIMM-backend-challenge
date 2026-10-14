@@ -1,21 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { LoggingModule } from './common/logging/logging.module.js';
-import { validateEnv } from './config/env.js';
-import { DatabaseModule } from './database/database.module.js';
+import { CoreModule } from './core.module.js';
+import { GraphqlApiModule } from './graphql/graphql.module.js';
+import { IngestOnStartup } from './modules/ingestion/application/ingest-on-startup.js';
 import { IngestionModule } from './modules/ingestion/ingestion.module.js';
+import { VehiclesModule } from './modules/vehicles/vehicles.module.js';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      cache: true,
-      envFilePath: [`.env.${process.env.NODE_ENV ?? 'development'}`, '.env'],
-      validate: validateEnv,
-    }),
-    LoggingModule,
-    DatabaseModule,
-    IngestionModule,
-  ],
+  imports: [CoreModule, VehiclesModule, IngestionModule, GraphqlApiModule],
+  providers: [IngestOnStartup],
 })
 export class AppModule {}

@@ -1,3 +1,5 @@
+import { sleep as wait } from './sleep.js';
+
 export type RetryOptions = {
   retries: number;
   baseDelayMs: number;
@@ -6,9 +8,6 @@ export type RetryOptions = {
   sleep?: (ms: number) => Promise<void>;
   random?: () => number;
 };
-
-const wait = (ms: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export const backoffDelay = (
   attempt: number,

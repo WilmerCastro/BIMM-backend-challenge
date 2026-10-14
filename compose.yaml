@@ -15,17 +15,31 @@ services:
       timeout: 3s
       retries: 10
 
+  nhtsa-mock:
+    image: node:22-alpine
+    working_dir: /mock
+    command: ["node", "server.ts"]
+    environment:
+      MOCK_PORT: "8080"
+    volumes:
+      - ./mock/nhtsa:/mock:ro
+
   api:
     build: .
     environment:
       DB_HOST: db
       DB_PASSWORD: postgres
       LOG_LEVEL: info
+      INGEST_ON_STARTUP: "true"
+      NHTSA_BASE_URL: ${NHTSA_BASE_URL:-http://nhtsa-mock:8080/api/vehicles}
+      NHTSA_REQUESTS_PER_SECOND: ${NHTSA_REQUESTS_PER_SECOND:-5}
     ports:
       - "3000:3000"
     depends_on:
       db:
         condition: service_healthy
+      nhtsa-mock:
+        condition: service_started
 
 volumes:
   pgdata:

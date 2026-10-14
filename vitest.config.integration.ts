@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['**/*.e2e-spec.ts'],
+    include: ['test/**/*.int-spec.ts', 'test/**/*.e2e-spec.ts'],
+    testTimeout: 30_000,
+    hookTimeout: 120_000,
   },
 });
