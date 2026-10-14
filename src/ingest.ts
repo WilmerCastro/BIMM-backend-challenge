@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
+import { exitOnFatal, exitOnUnhandledErrors } from './common/logging/fatal.js';
 import { CoreModule } from './core.module.js';
 import { IngestionService } from './modules/ingestion/application/ingestion.service.js';
 import { IngestionModule } from './modules/ingestion/ingestion.module.js';
@@ -10,7 +11,8 @@ class IngestCommandModule {}
 
 const runIngestion = async () => {
   const app = await NestFactory.createApplicationContext(IngestCommandModule, {
-    bufferLogs: true,
+    logger: false,
+    abortOnError: false,
   });
   app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
@@ -25,4 +27,5 @@ const runIngestion = async () => {
   }
 };
 
-await runIngestion();
+exitOnUnhandledErrors();
+await runIngestion().catch(exitOnFatal('Ingestion command failed to start'));

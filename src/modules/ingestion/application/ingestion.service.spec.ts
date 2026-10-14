@@ -1,10 +1,15 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { validateEnv, type Env } from '../../../config/env.js';
-import type { Make, MakeSummary, VehicleType } from '../../vehicles/domain/make.js';
+import type {
+  Make,
+  MakeSummary,
+  VehicleType,
+} from '../../vehicles/domain/make.js';
 import type { MakeWriter } from '../../vehicles/domain/make.repository.js';
 import type {
   IngestionOutcome,
+  IngestionProgress,
   IngestionRun,
   IngestionRunRepository,
 } from '../domain/ingestion-run.js';
@@ -59,9 +64,14 @@ class InMemoryMakes implements MakeWriter {
 
 class InMemoryRuns implements IngestionRunRepository {
   outcomes: IngestionOutcome[] = [];
+  progress: IngestionProgress[] = [];
 
   async start() {
     return 1;
+  }
+
+  async updateProgress(_runId: number, progress: IngestionProgress) {
+    this.progress.push(progress);
   }
 
   async finish(_runId: number, outcome: IngestionOutcome) {
@@ -109,6 +119,18 @@ describe('IngestionService', () => {
     expect(summary).toMatchObject({ status: 'COMPLETED', makesSaved: 3 });
     expect(runs.outcomes).toEqual([
       expect.objectContaining({ status: 'COMPLETED', makesTotal: 3 }),
+    ]);
+  });
+
+  it('records progress while it runs', async () => {
+    const { service, runs } = setup();
+
+    await service.run();
+
+    expect(runs.progress).toEqual([
+      { makesTotal: 3, makesSaved: 0, makesFailed: 0 },
+      { makesTotal: 3, makesSaved: 2, makesFailed: 0 },
+      { makesTotal: 3, makesSaved: 3, makesFailed: 0 },
     ]);
   });
 

@@ -13,7 +13,10 @@ export const mapSettledWithConcurrency = async <Item, Result>(
       const index = nextIndex;
       nextIndex += 1;
       try {
-        results[index] = { status: 'fulfilled', value: await task(items[index]) };
+        results[index] = {
+          status: 'fulfilled',
+          value: await task(items[index]),
+        };
       } catch (reason) {
         results[index] = { status: 'rejected', reason };
       }

@@ -26,7 +26,9 @@ const storedCatalog = async (): Promise<Make[]> => {
       ORDER BY m.make_id
     `);
   const types: { type_id: number; type_name: string }[] =
-    await database.dataSource.query('SELECT type_id, type_name FROM vehicle_types');
+    await database.dataSource.query(
+      'SELECT type_id, type_name FROM vehicle_types',
+    );
   const typeName = new Map(types.map((type) => [type.type_id, type.type_name]));
 
   return rows.map((row) => ({
@@ -58,11 +60,15 @@ describe('TypeOrmMakeRepository', () => {
 
     await repository.saveMakes(makes);
 
-    expect(await storedCatalog()).toEqual([...makes].sort((a, b) => a.makeId - b.makeId));
+    expect(await storedCatalog()).toEqual(
+      [...makes].sort((a, b) => a.makeId - b.makeId),
+    );
   });
 
   it('can save the same makes twice without duplicating anything', async () => {
-    const makes = [{ makeId: 440, makeName: 'ASTON MARTIN', vehicleTypes: [car] }];
+    const makes = [
+      { makeId: 440, makeName: 'ASTON MARTIN', vehicleTypes: [car] },
+    ];
 
     await repository.saveMakes(makes);
     await repository.saveMakes(makes);
@@ -143,8 +149,14 @@ describe('TypeOrmMakeRepository reads', () => {
   it('pages through every make in name order without gaps or repeats', async () => {
     const allAtOnce = await repository.findMakes({ limit: 10 });
     const firstPage = await repository.findMakes({ limit: 2 });
-    const secondPage = await repository.findMakes({ limit: 2, after: firstPage[1] });
-    const thirdPage = await repository.findMakes({ limit: 2, after: secondPage[1] });
+    const secondPage = await repository.findMakes({
+      limit: 2,
+      after: firstPage[1],
+    });
+    const thirdPage = await repository.findMakes({
+      limit: 2,
+      after: secondPage[1],
+    });
 
     expect(names([...firstPage, ...secondPage, ...thirdPage])).toEqual(
       names(allAtOnce),
@@ -153,26 +165,36 @@ describe('TypeOrmMakeRepository reads', () => {
   });
 
   it('filters by a case-insensitive part of the name', async () => {
-    expect(names(await repository.findMakes({ limit: 10, name: 'onD' }))).toEqual([
-      'HONDA',
-    ]);
+    expect(
+      names(await repository.findMakes({ limit: 10, name: 'onD' })),
+    ).toEqual(['HONDA']);
   });
 
   it('treats LIKE wildcards in the search as plain text', async () => {
-    expect(names(await repository.findMakes({ limit: 10, name: 'A_B' }))).toEqual([
-      'A_B TRAILERS',
-    ]);
+    expect(
+      names(await repository.findMakes({ limit: 10, name: 'A_B' })),
+    ).toEqual(['A_B TRAILERS']);
   });
 
   it('filters by a vehicle type the make builds', async () => {
     expect(
-      names(await repository.findMakes({ limit: 10, vehicleTypeId: motorcycle.typeId })),
+      names(
+        await repository.findMakes({
+          limit: 10,
+          vehicleTypeId: motorcycle.typeId,
+        }),
+      ),
     ).toEqual(['BMW', 'HONDA']);
-    expect(await repository.countMakes({ vehicleTypeId: motorcycle.typeId })).toBe(2);
+    expect(
+      await repository.countMakes({ vehicleTypeId: motorcycle.typeId }),
+    ).toBe(2);
   });
 
   it('finds a make by id', async () => {
-    expect(await repository.findMakeById(2)).toEqual({ makeId: 2, makeName: 'BMW' });
+    expect(await repository.findMakeById(2)).toEqual({
+      makeId: 2,
+      makeName: 'BMW',
+    });
     expect(await repository.findMakeById(999)).toBeNull();
   });
 
@@ -185,6 +207,10 @@ describe('TypeOrmMakeRepository reads', () => {
   });
 
   it('lists every vehicle type', async () => {
-    expect(await repository.findAllVehicleTypes()).toEqual([motorcycle, car, trailer]);
+    expect(await repository.findAllVehicleTypes()).toEqual([
+      motorcycle,
+      car,
+      trailer,
+    ]);
   });
 });

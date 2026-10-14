@@ -55,7 +55,9 @@ afterAll(() => server.close());
 
 describe('NhtsaClient', () => {
   it('fetches and parses all makes', async () => {
-    server.use(http.get(MAKES_URL, () => HttpResponse.xml(fixture('getallmakes.xml'))));
+    server.use(
+      http.get(MAKES_URL, () => HttpResponse.xml(fixture('getallmakes.xml'))),
+    );
 
     const makes = await createClient().getAllMakes();
 
@@ -65,7 +67,9 @@ describe('NhtsaClient', () => {
 
   it('fetches and parses the vehicle types of a make', async () => {
     server.use(
-      http.get(TYPES_440_URL, () => HttpResponse.xml(fixture('vehicle-types-440.xml'))),
+      http.get(TYPES_440_URL, () =>
+        HttpResponse.xml(fixture('vehicle-types-440.xml')),
+      ),
     );
 
     await expect(createClient().getVehicleTypes(440)).resolves.toEqual([
@@ -80,7 +84,9 @@ describe('NhtsaClient', () => {
       http.get(TYPES_440_URL, () => new HttpResponse(null, { status: 503 }), {
         once: true,
       }),
-      http.get(TYPES_440_URL, () => HttpResponse.xml(fixture('vehicle-types-440.xml'))),
+      http.get(TYPES_440_URL, () =>
+        HttpResponse.xml(fixture('vehicle-types-440.xml')),
+      ),
     );
 
     await expect(createClient().getVehicleTypes(440)).resolves.toHaveLength(2);
@@ -91,7 +97,9 @@ describe('NhtsaClient', () => {
     const requests = countRequests(TYPES_440_URL);
     server.use(
       http.get(TYPES_440_URL, () => HttpResponse.error(), { once: true }),
-      http.get(TYPES_440_URL, () => HttpResponse.xml(fixture('vehicle-types-440.xml'))),
+      http.get(TYPES_440_URL, () =>
+        HttpResponse.xml(fixture('vehicle-types-440.xml')),
+      ),
     );
 
     await expect(createClient().getVehicleTypes(440)).resolves.toHaveLength(2);
@@ -100,7 +108,9 @@ describe('NhtsaClient', () => {
 
   it('gives up after the configured retries', async () => {
     const requests = countRequests(TYPES_440_URL);
-    server.use(http.get(TYPES_440_URL, () => new HttpResponse(null, { status: 500 })));
+    server.use(
+      http.get(TYPES_440_URL, () => new HttpResponse(null, { status: 500 })),
+    );
 
     await expect(createClient().getVehicleTypes(440)).rejects.toBeInstanceOf(
       NetworkError,
@@ -112,7 +122,10 @@ describe('NhtsaClient', () => {
     const requests = countRequests(TYPES_440_URL);
     server.use(
       http.get(TYPES_440_URL, () =>
-        HttpResponse.json({ message: 'The request is invalid.' }, { status: 400 }),
+        HttpResponse.json(
+          { message: 'The request is invalid.' },
+          { status: 400 },
+        ),
       ),
     );
 
@@ -146,13 +159,18 @@ describe('NhtsaClient', () => {
     );
 
     await expect(
-      createClient({ NHTSA_TIMEOUT_MS: '20', NHTSA_MAX_RETRIES: '0' }).getVehicleTypes(440),
+      createClient({
+        NHTSA_TIMEOUT_MS: '20',
+        NHTSA_MAX_RETRIES: '0',
+      }).getVehicleTypes(440),
     ).rejects.toBeInstanceOf(NetworkError);
   });
 
   it('does not retry a response that is not valid XML', async () => {
     const requests = countRequests(TYPES_440_URL);
-    server.use(http.get(TYPES_440_URL, () => HttpResponse.text('<Response><Results>')));
+    server.use(
+      http.get(TYPES_440_URL, () => HttpResponse.text('<Response><Results>')),
+    );
 
     await expect(createClient().getVehicleTypes(440)).rejects.toBeInstanceOf(
       XmlParseError,

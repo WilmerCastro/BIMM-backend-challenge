@@ -1,7 +1,4 @@
-import type {
-  MakeSummary,
-  VehicleType,
-} from '../../vehicles/domain/make.js';
+import type { MakeSummary, VehicleType } from '../../vehicles/domain/make.js';
 
 export const VEHICLE_CATALOG_SOURCE = Symbol('VehicleCatalogSource');
 

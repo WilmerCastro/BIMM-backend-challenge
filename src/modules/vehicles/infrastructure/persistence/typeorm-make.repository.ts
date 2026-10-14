@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, EntityManager, In, type SelectQueryBuilder } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  In,
+  type SelectQueryBuilder,
+} from 'typeorm';
 import { chunk } from '../../../../common/collections/chunk.js';
 import type { Make, MakeSummary, VehicleType } from '../../domain/make.js';
 import type {
@@ -15,7 +20,9 @@ const WRITE_CHUNK_SIZE = 1000;
 
 const uniqueVehicleTypes = (makes: readonly Make[]): VehicleType[] => [
   ...new Map(
-    makes.flatMap((make) => make.vehicleTypes).map((type) => [type.typeId, type]),
+    makes
+      .flatMap((make) => make.vehicleTypes)
+      .map((type) => [type.typeId, type]),
   ).values(),
 ];
 
@@ -57,23 +64,33 @@ export class TypeOrmMakeRepository implements MakeRepository {
     });
   }
 
-  findMakes({ limit, after, ...filter }: MakePageQuery): Promise<MakeSummary[]> {
+  findMakes({
+    limit,
+    after,
+    ...filter
+  }: MakePageQuery): Promise<MakeSummary[]> {
     const query = applyFilter(this.makes.createQueryBuilder('make'), filter)
       .orderBy('make.make_name', 'ASC')
       .addOrderBy('make.make_id', 'ASC')
       .limit(limit);
 
     if (after) {
-      query.andWhere('(make.make_name, make.make_id) > (:afterName, :afterId)', {
-        afterName: after.makeName,
-        afterId: after.makeId,
-      });
+      query.andWhere(
+        '(make.make_name, make.make_id) > (:afterName, :afterId)',
+        {
+          afterName: after.makeName,
+          afterId: after.makeId,
+        },
+      );
     }
     return query.getMany();
   }
 
   countMakes(filter: MakeFilter = {}): Promise<number> {
-    return applyFilter(this.makes.createQueryBuilder('make'), filter).getCount();
+    return applyFilter(
+      this.makes.createQueryBuilder('make'),
+      filter,
+    ).getCount();
   }
 
   findMakeById(makeId: number): Promise<MakeSummary | null> {

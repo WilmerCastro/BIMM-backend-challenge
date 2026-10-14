@@ -1,6 +1,5 @@
 export type LockOutcome<Result> =
-  | { acquired: true; result: Result }
-  | { acquired: false };
+  { acquired: true; result: Result } | { acquired: false };
 
 export const INGESTION_LOCK = Symbol('IngestionLock');
 

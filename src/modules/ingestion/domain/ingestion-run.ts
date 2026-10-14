@@ -23,10 +23,16 @@ export type IngestionOutcome = Pick<
   'status' | 'makesTotal' | 'makesSaved' | 'makesFailed' | 'failures' | 'error'
 >;
 
+export type IngestionProgress = Pick<
+  IngestionRun,
+  'makesTotal' | 'makesSaved' | 'makesFailed'
+>;
+
 export const INGESTION_RUN_REPOSITORY = Symbol('IngestionRunRepository');
 
 export interface IngestionRunRepository {
   start(): Promise<number>;
+  updateProgress(runId: number, progress: IngestionProgress): Promise<void>;
   finish(runId: number, outcome: IngestionOutcome): Promise<void>;
   findLatest(): Promise<IngestionRun | null>;
 }

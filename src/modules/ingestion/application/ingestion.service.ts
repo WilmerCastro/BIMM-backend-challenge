@@ -20,7 +20,10 @@ import {
   PersistenceError,
   SourceBlockedError,
 } from '../domain/ingestion.errors.js';
-import { INGESTION_LOCK, type IngestionLock } from '../domain/ingestion.lock.js';
+import {
+  INGESTION_LOCK,
+  type IngestionLock,
+} from '../domain/ingestion.lock.js';
 import {
   VEHICLE_CATALOG_SOURCE,
   type VehicleCatalogSource,
@@ -87,6 +90,11 @@ export class IngestionService {
         makes,
         this.config.get('INGEST_BATCH_SIZE', { infer: true }),
       );
+      await this.runs.updateProgress(runId, {
+        makesTotal: makes.length,
+        makesSaved: 0,
+        makesFailed: 0,
+      });
 
       let saved = 0;
       let stoppedEarly = false;
@@ -95,6 +103,11 @@ export class IngestionService {
         const result = await this.ingestBatch(batch);
         saved += result.saved;
         failures.push(...result.failures);
+        await this.runs.updateProgress(runId, {
+          makesTotal: makes.length,
+          makesSaved: saved,
+          makesFailed: failures.length,
+        });
         this.logger.log(
           {
             runId,

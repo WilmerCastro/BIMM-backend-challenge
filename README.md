@@ -1,124 +1,143 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Vehicle catalog service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Pulls vehicle makes and their vehicle types from the
+[NHTSA vPIC API](https://vpic.nhtsa.dot.gov/api/) (XML), combines them into one
+JSON structure, stores it in PostgreSQL and serves it through one GraphQL
+endpoint.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
+```json
+[{ "makeId": 440, "makeName": "ASTON MARTIN",
+   "vehicleTypes": [{ "typeId": 2, "typeName": "Passenger Car" }] }]
 ```
 
-## Compile and run the project
+Built with NestJS, TypeScript, GraphQL (Apollo), PostgreSQL + TypeORM, Zod and
+Pino. How it works inside: [docs/design.md](docs/design.md).
+
+## Run it
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+docker compose up --build
 ```
 
-## Run tests
+Starts PostgreSQL, a local NHTSA mock and the API. The catalog fills in the
+background on first start.
+
+- GraphQL: http://localhost:3000/graphql (opens Apollo Sandbox)
+- Health: http://localhost:3000/health
+
+Docker Compose uses the **mock** by default, so nothing calls the real API. To
+use NHTSA:
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+NHTSA_BASE_URL=https://vpic.nhtsa.dot.gov/api/vehicles docker compose up --build
 ```
 
-## Deployment
+A full ingestion from NHTSA is ~12,400 requests and takes about 40 minutes at 5
+requests per second; makes become queryable batch by batch.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Develop
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Requires Node 22, pnpm 10 and Docker.
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm install
+cp .env.example .env       # uses the local mock
+docker compose up -d db
+pnpm mock:nhtsa            # mock on :8080
+pnpm start:dev             # API on :3000
+pnpm ingest:dev            # one ingestion run
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+| Command | |
+| --- | --- |
+| `pnpm test` | Unit tests |
+| `pnpm test:integration` | Integration and end-to-end tests (uses Docker) |
+| `pnpm lint` / `pnpm typecheck` | Static checks |
+| `pnpm migration:run` | Apply migrations (after `pnpm build`) |
 
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-To add it to this project:
+## Build
 
 ```bash
-$ pnpm install @nestjs/observe
+pnpm build                 # compiles to dist/
+pnpm start:prod            # runs the API
+pnpm ingest                # runs one ingestion and exits (for a scheduler)
+docker build -t vehicle-catalog .
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+## Configuration
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+Environment variables, validated at startup. The service won't start if one is
+invalid.
 
-## Resources
+| Variable | Default | |
+| --- | --- | --- |
+| `NODE_ENV` | `development` | `development`, `test` or `production` |
+| `PORT` | `3000` | |
+| `LOG_LEVEL` | `info` | |
+| `DB_HOST` / `DB_PORT` | `localhost` / `5432` | |
+| `DB_USER` / `DB_NAME` | `postgres` / `vehicles` | |
+| `DB_PASSWORD` | **required** | |
+| `DB_RUN_MIGRATIONS` | `true` | Apply migrations on startup |
+| `NHTSA_BASE_URL` | NHTSA's URL | Point it at the mock in development |
+| `NHTSA_REQUESTS_PER_SECOND` | `5` | Rate limit |
+| `NHTSA_CONCURRENCY` | `10` | Requests in flight |
+| `NHTSA_TIMEOUT_MS` | `10000` | Per request |
+| `NHTSA_MAX_RETRIES` | `3` | For network errors, 429 and 5xx |
+| `NHTSA_RETRY_BASE_DELAY_MS` | `500` | Backoff base |
+| `INGEST_ON_STARTUP` | `false` | Ingest when the API starts with an empty catalog |
+| `INGEST_MAKES_LIMIT` | — | Only ingest N makes |
+| `INGEST_BATCH_SIZE` | `500` | Makes per batch |
 
-Check out a few resources that may come in handy when working with NestJS:
+## Data model
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```mermaid
+erDiagram
+  makes ||--o{ make_vehicle_types : builds
+  vehicle_types ||--o{ make_vehicle_types : "built by"
+  makes {
+    integer make_id PK
+    text make_name
+  }
+  vehicle_types {
+    integer type_id PK
+    text type_name
+  }
+  make_vehicle_types {
+    integer make_id FK
+    integer type_id FK
+  }
+```
 
-## Support
+Vehicle types are stored once and linked to makes, since thousands of makes
+share them. `ingestion_runs` records each ingestion: status, counts and the
+makes that failed.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## GraphQL
 
-## Stay in touch
+The documented schema is in [schema.gql](schema.gql).
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Query | |
+| --- | --- |
+| `makes(first, after, name, vehicleTypeId)` | Makes by name, paginated with cursors, optionally filtered |
+| `make(makeId)` | One make, or `null` |
+| `vehicleTypes` | All vehicle types |
+| `lastIngestion` | Latest ingestion run and its progress |
 
-## License
+```graphql
+{
+  makes(first: 3, name: "honda") {
+    totalCount
+    nodes { makeId makeName vehicleTypes { typeName } }
+    pageInfo { hasNextPage endCursor }
+  }
+}
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Next page: pass `endCursor` as `after`.
+
+```graphql
+{
+  make(makeId: 440) { makeName vehicleTypes { typeName } }
+  lastIngestion { status makesSaved makesFailed }
+}
+```

@@ -9,7 +9,10 @@ const createLoader = () => {
       new Map(makeIds.filter((id) => id !== 3).map((id) => [id, [car]])),
   );
   const catalog = { vehicleTypesForMakes } as unknown as VehicleCatalogService;
-  return { loader: new VehicleTypesLoaderFactory(catalog).create(), vehicleTypesForMakes };
+  return {
+    loader: new VehicleTypesLoaderFactory(catalog).create(),
+    vehicleTypesForMakes,
+  };
 };
 
 describe('VehicleTypesLoaderFactory', () => {

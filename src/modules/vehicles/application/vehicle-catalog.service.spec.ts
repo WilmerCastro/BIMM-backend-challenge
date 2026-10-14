@@ -93,7 +93,9 @@ describe('VehicleCatalogService.listMakes', () => {
   it.each([0, 101, 1.5])('rejects first = %s', async (first) => {
     const { service } = setup();
 
-    await expect(service.listMakes({ first })).rejects.toThrow(InvalidInputError);
+    await expect(service.listMakes({ first })).rejects.toThrow(
+      InvalidInputError,
+    );
   });
 
   it('rejects a cursor it did not create', async () => {

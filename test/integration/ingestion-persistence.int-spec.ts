@@ -28,7 +28,20 @@ describe('TypeOrmIngestionRunRepository', () => {
       finishedAt: null,
     });
 
-    const failures = [{ makeId: 2, makeName: 'TWO', reason: 'NetworkError: boom' }];
+    await runs.updateProgress(runId, {
+      makesTotal: 3,
+      makesSaved: 1,
+      makesFailed: 0,
+    });
+    expect(await runs.findLatest()).toMatchObject({
+      status: 'RUNNING',
+      makesTotal: 3,
+      makesSaved: 1,
+    });
+
+    const failures = [
+      { makeId: 2, makeName: 'TWO', reason: 'NetworkError: boom' },
+    ];
     await runs.finish(runId, {
       status: 'PARTIAL',
       makesTotal: 3,
@@ -72,7 +85,10 @@ describe('PostgresIngestionLock', () => {
     });
 
     release();
-    await expect(firstRun).resolves.toEqual({ acquired: true, result: 'first' });
+    await expect(firstRun).resolves.toEqual({
+      acquired: true,
+      result: 'first',
+    });
     await expect(second.runExclusively(async () => 'second')).resolves.toEqual({
       acquired: true,
       result: 'second',

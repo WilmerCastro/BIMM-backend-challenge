@@ -78,9 +78,7 @@ describe('parseVehicleTypesXml', () => {
   });
 
   it('names the make in the error when the response shape is wrong', () => {
-    const xml = response(
-      `<Results>${vehicleType('abc', 'Trailer')}</Results>`,
-    );
+    const xml = response(`<Results>${vehicleType('abc', 'Trailer')}</Results>`);
 
     expect(() => parseVehicleTypesXml(xml, 440)).toThrow(
       'Unexpected response shape from GetVehicleTypesForMakeId/440',

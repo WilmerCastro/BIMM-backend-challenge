@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import type {
   IngestionOutcome,
+  IngestionProgress,
   IngestionRun,
   IngestionRunRepository,
 } from '../../domain/ingestion-run.js';
@@ -21,6 +22,13 @@ export class TypeOrmIngestionRunRepository implements IngestionRunRepository {
       startedAt: new Date(),
     });
     return run.id;
+  }
+
+  async updateProgress(
+    runId: number,
+    progress: IngestionProgress,
+  ): Promise<void> {
+    await this.runs.update(runId, progress);
   }
 
   async finish(runId: number, outcome: IngestionOutcome): Promise<void> {

@@ -40,7 +40,10 @@ describe('combineMakesWithVehicleTypes', () => {
     ];
 
     expect(
-      combineMakesWithVehicleTypes(makes, new Map([[1, [trailer, car, trailer]]])),
+      combineMakesWithVehicleTypes(
+        makes,
+        new Map([[1, [trailer, car, trailer]]]),
+      ),
     ).toEqual([{ makeId: 1, makeName: 'ACME', vehicleTypes: [car, trailer] }]);
   });
 });

@@ -18,7 +18,8 @@ export class PageInfoObject {
 
   @Field(() => String, {
     nullable: true,
-    description: 'Pass as "after" to get the next page. Null when the page is empty.',
+    description:
+      'Pass as "after" to get the next page. Null when the page is empty.',
   })
   endCursor: string | null;
 }
@@ -28,7 +29,9 @@ export class MakeConnectionObject {
   @Field(() => [MakeObject])
   nodes: MakeObject[];
 
-  @Field(() => Int, { description: 'Makes matching the filters, across all pages.' })
+  @Field(() => Int, {
+    description: 'Makes matching the filters, across all pages.',
+  })
   totalCount: number;
 
   @Field(() => PageInfoObject)

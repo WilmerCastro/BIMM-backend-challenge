@@ -22,21 +22,29 @@ describe('mapSettledWithConcurrency', () => {
   });
 
   it('keeps results in the same order as the items', async () => {
-    const results = await mapSettledWithConcurrency([30, 10, 20], 3, async (ms) => {
-      await new Promise((resolve) => setTimeout(resolve, ms));
-      return ms;
-    });
+    const results = await mapSettledWithConcurrency(
+      [30, 10, 20],
+      3,
+      async (ms) => {
+        await new Promise((resolve) => setTimeout(resolve, ms));
+        return ms;
+      },
+    );
 
-    expect(results.map((result) => result.status === 'fulfilled' && result.value)).toEqual([
-      30, 10, 20,
-    ]);
+    expect(
+      results.map((result) => result.status === 'fulfilled' && result.value),
+    ).toEqual([30, 10, 20]);
   });
 
   it('records failures without stopping the other tasks', async () => {
-    const results = await mapSettledWithConcurrency([1, 2, 3], 2, async (item) => {
-      if (item === 2) throw new Error('make 2 failed');
-      return item;
-    });
+    const results = await mapSettledWithConcurrency(
+      [1, 2, 3],
+      2,
+      async (item) => {
+        if (item === 2) throw new Error('make 2 failed');
+        return item;
+      },
+    );
 
     expect(results.map((result) => result.status)).toEqual([
       'fulfilled',
@@ -46,6 +54,8 @@ describe('mapSettledWithConcurrency', () => {
   });
 
   it('handles an empty list', async () => {
-    await expect(mapSettledWithConcurrency([], 5, async () => 1)).resolves.toEqual([]);
+    await expect(
+      mapSettledWithConcurrency([], 5, async () => 1),
+    ).resolves.toEqual([]);
   });
 });

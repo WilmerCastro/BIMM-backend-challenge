@@ -11,7 +11,9 @@ const makesXml = readFileSync(
   'utf8',
 );
 const knownMakeIds = new Set(
-  [...makesXml.matchAll(/<Make_ID>(\d+)<\/Make_ID>/g)].map(([, id]) => Number(id)),
+  [...makesXml.matchAll(/<Make_ID>(\d+)<\/Make_ID>/g)].map(([, id]) =>
+    Number(id),
+  ),
 );
 
 const VEHICLE_TYPES = [

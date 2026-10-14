@@ -41,7 +41,9 @@ export class NhtsaClient implements VehicleCatalogSource {
   private fetchXml(path: string, source: string) {
     return withRetry(() => this.request(path, source), {
       retries: this.config.get('NHTSA_MAX_RETRIES', { infer: true }),
-      baseDelayMs: this.config.get('NHTSA_RETRY_BASE_DELAY_MS', { infer: true }),
+      baseDelayMs: this.config.get('NHTSA_RETRY_BASE_DELAY_MS', {
+        infer: true,
+      }),
       shouldRetry: (error) => error instanceof NetworkError && error.retryable,
       onRetry: (error, attempt, delayMs) =>
         this.logger.warn(

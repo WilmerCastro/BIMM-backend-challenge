@@ -40,7 +40,10 @@ export class VehicleCatalogService {
       );
     }
     const position = after === undefined ? undefined : decodeMakeCursor(after);
-    const filter: MakeFilter = { name: name?.trim() || undefined, vehicleTypeId };
+    const filter: MakeFilter = {
+      name: name?.trim() || undefined,
+      vehicleTypeId,
+    };
 
     const [rows, totalCount] = await Promise.all([
       this.makes.findMakes({ ...filter, limit: first + 1, after: position }),
