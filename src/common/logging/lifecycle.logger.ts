@@ -1,13 +1,10 @@
-import { Injectable, OnApplicationShutdown } from '@nestjs/common';
-import { PinoLogger } from 'nestjs-pino';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 
 @Injectable()
 export class LifecycleLogger implements OnApplicationShutdown {
-  constructor(private readonly logger: PinoLogger) {
-    logger.setContext(LifecycleLogger.name);
-  }
+  private readonly logger = new Logger(LifecycleLogger.name);
 
   onApplicationShutdown(signal?: string) {
-    this.logger.info({ signal }, 'Application shut down');
+    this.logger.log({ signal }, 'Application shut down');
   }
 }

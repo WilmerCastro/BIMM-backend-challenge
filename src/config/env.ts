@@ -13,6 +13,14 @@ export const envSchema = z.object({
   DB_USER: z.string().min(1).default('postgres'),
   DB_PASSWORD: z.string().min(1),
   DB_NAME: z.string().min(1).default('vehicles'),
+  NHTSA_BASE_URL: z
+    .url()
+    .default('https://vpic.nhtsa.dot.gov/api/vehicles')
+    .transform((url) => url.replace(/\/+$/, '')),
+  NHTSA_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+  NHTSA_MAX_RETRIES: z.coerce.number().int().min(0).max(10).default(3),
+  NHTSA_RETRY_BASE_DELAY_MS: z.coerce.number().int().positive().default(500),
+  NHTSA_CONCURRENCY: z.coerce.number().int().min(1).max(50).default(10),
 });
 
 export type Env = z.infer<typeof envSchema>;
