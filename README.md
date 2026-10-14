@@ -20,7 +20,8 @@ docker compose up --build
 ```
 
 Starts PostgreSQL, a local NHTSA mock and the API. The catalog fills in the
-background on first start.
+background on first start: the first makes appear within seconds and
+`lastIngestion` shows the progress.
 
 - GraphQL: http://localhost:3000/graphql (opens Apollo Sandbox)
 - Health: http://localhost:3000/health

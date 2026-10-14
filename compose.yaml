@@ -33,6 +33,7 @@ services:
       INGEST_ON_STARTUP: "true"
       NHTSA_BASE_URL: ${NHTSA_BASE_URL:-http://nhtsa-mock:8080/api/vehicles}
       NHTSA_REQUESTS_PER_SECOND: ${NHTSA_REQUESTS_PER_SECOND:-5}
+      INGEST_BATCH_SIZE: ${INGEST_BATCH_SIZE:-50}
     ports:
       - "3000:3000"
     depends_on:
