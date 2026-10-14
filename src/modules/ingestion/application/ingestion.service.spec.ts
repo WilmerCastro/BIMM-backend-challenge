@@ -206,6 +206,14 @@ describe('IngestionService', () => {
     expect(repository.saved.map((make) => make.makeId)).toEqual([1, 2]);
   });
 
+  it('ingests every make when the limit is 0', async () => {
+    const { service, repository } = setup({ INGEST_MAKES_LIMIT: '0' });
+
+    await service.run();
+
+    expect(repository.saved).toHaveLength(3);
+  });
+
   it('skips the run when another ingestion holds the lock', async () => {
     const { service, source, lock } = setup();
     lock.busy = true;

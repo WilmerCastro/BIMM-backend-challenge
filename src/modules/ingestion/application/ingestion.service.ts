@@ -168,7 +168,7 @@ export class IngestionService {
 
   private applyLimit(makes: MakeSummary[]) {
     const limit = this.config.get('INGEST_MAKES_LIMIT', { infer: true });
-    return limit === undefined ? makes : makes.slice(0, limit);
+    return limit ? makes.slice(0, limit) : makes;
   }
 
   private async ingestBatch(batch: MakeSummary[]): Promise<BatchResult> {

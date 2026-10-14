@@ -54,8 +54,10 @@ requests in bursts. So:
 
 - requests are rate limited (`NHTSA_REQUESTS_PER_SECOND`);
 - a 403 stops the run after the current batch instead of sending thousands more;
-- development uses a local mock ([mock/nhtsa](../mock/nhtsa)) with the real list
-  of makes. `NHTSA_BASE_URL` switches between mock and real.
+- Docker Compose and `.env.example` ingest only 50 makes by default
+  (`INGEST_MAKES_LIMIT`), so trying the service costs NHTSA ~50 requests;
+- a local mock ([mock/nhtsa](../mock/nhtsa)) with the real list of makes can
+  replace NHTSA entirely. `NHTSA_BASE_URL` switches between mock and real.
 
 ## Error handling
 

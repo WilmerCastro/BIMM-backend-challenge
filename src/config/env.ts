@@ -24,7 +24,7 @@ export const envSchema = z.object({
   NHTSA_CONCURRENCY: z.coerce.number().int().min(1).max(50).default(10),
   NHTSA_REQUESTS_PER_SECOND: z.coerce.number().positive().max(500).default(5),
   INGEST_ON_STARTUP: z.stringbool().default(false),
-  INGEST_MAKES_LIMIT: z.coerce.number().int().positive().optional(),
+  INGEST_MAKES_LIMIT: z.coerce.number().int().min(0).optional(),
   INGEST_BATCH_SIZE: z.coerce.number().int().positive().default(500),
 });
 

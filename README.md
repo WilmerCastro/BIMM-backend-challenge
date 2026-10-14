@@ -19,22 +19,9 @@ Pino. How it works inside: [docs/design.md](docs/design.md).
 docker compose up --build
 ```
 
-Starts PostgreSQL, a local NHTSA mock and the API. The catalog fills in the
-background on first start: the first makes appear within seconds and
-`lastIngestion` shows the progress.
-
-- GraphQL: http://localhost:3000/graphql (opens Apollo Sandbox)
-- Health: http://localhost:3000/health
-
-Docker Compose uses the **mock** by default, so nothing calls the real API. To
-use NHTSA:
-
-```bash
-NHTSA_BASE_URL=https://vpic.nhtsa.dot.gov/api/vehicles docker compose up --build
-```
-
-A full ingestion from NHTSA is ~12,400 requests and takes about 40 minutes at 5
-requests per second; makes become queryable batch by batch.
+Open http://localhost:3000/graphql. On first start the API ingests 50 makes from
+NHTSA (about 10 seconds). For the whole catalog (~40 minutes), run it with
+`INGEST_MAKES_LIMIT=0`.
 
 ## Develop
 
@@ -42,9 +29,8 @@ Requires Node 22, pnpm 10 and Docker.
 
 ```bash
 pnpm install
-cp .env.example .env       # uses the local mock
+cp .env.example .env       # real NHTSA API, 50 makes
 docker compose up -d db
-pnpm mock:nhtsa            # mock on :8080
 pnpm start:dev             # API on :3000
 pnpm ingest:dev            # one ingestion run
 ```
@@ -79,14 +65,14 @@ invalid.
 | `DB_USER` / `DB_NAME` | `postgres` / `vehicles` | |
 | `DB_PASSWORD` | **required** | |
 | `DB_RUN_MIGRATIONS` | `true` | Apply migrations on startup |
-| `NHTSA_BASE_URL` | NHTSA's URL | Point it at the mock in development |
-| `NHTSA_REQUESTS_PER_SECOND` | `5` | Rate limit |
+| `NHTSA_BASE_URL` | NHTSA's URL | Real API: `https://vpic.nhtsa.dot.gov/api/vehicles`. Local mock: `http://localhost:8080/api/vehicles` (`http://nhtsa-mock:8080/api/vehicles` inside Docker Compose) |
+| `NHTSA_REQUESTS_PER_SECOND` | `5` | Rate limit; the default 5 is safe for the real API |
 | `NHTSA_CONCURRENCY` | `10` | Requests in flight |
 | `NHTSA_TIMEOUT_MS` | `10000` | Per request |
 | `NHTSA_MAX_RETRIES` | `3` | For network errors, 429 and 5xx |
 | `NHTSA_RETRY_BASE_DELAY_MS` | `500` | Backoff base |
 | `INGEST_ON_STARTUP` | `false` | Ingest when the API starts with an empty catalog |
-| `INGEST_MAKES_LIMIT` | — | Only ingest N makes |
+| `INGEST_MAKES_LIMIT` | — | Only ingest N makes; `0` means all. Docker Compose and `.env.example` use 50 |
 | `INGEST_BATCH_SIZE` | `500` | Makes per batch |
 
 ## Data model
